@@ -38,7 +38,7 @@ function install_common() {
     setenforce permissive
     echo "[cloudstack]
 name=cloudstack
-baseurl=http://cloudstack.apt-get.eu/rhel/4.2/
+baseurl=http://cloudstack.apt-get.eu/rhel/4.3/
 enabled=1
 gpgcheck=0" > /etc/yum.repos.d/CloudStack.repo
     sed -i -e "s/localhost/$HOSTNAME localhost/" /etc/hosts
@@ -88,8 +88,7 @@ expect \"Reload privilege tables now?\"
 send \"Y\n\"
 interact
 "
-    cloudstack-setup-databases cloud:password@localhost --deploy-as=root:password
-    echo "Defaults:cloud !requiretty" >> /etc/sudoers
+    cloudstack-setup-databases cloud:password@localhost --deploy-as=root:passwd
     cloudstack-setup-management
     chkconfig cloudstack-management on
     chown cloud:cloud /var/log/cloudstack/management/catalina.out
@@ -108,7 +107,7 @@ function initialize_storage() {
     sleep 10
     rm -rf /mnt/primary/*
     rm -rf /mnt/secondary/*
-    /usr/share/cloudstack-common/scripts/storage/secondary/cloud-install-sys-tmplt -m /mnt/secondary -u http://d21ifhcun6b1t2.cloudfront.net/templates/4.2/systemvmtemplate-2013-06-12-master-kvm.qcow2.bz2 -h kvm -F
+    /usr/share/cloudstack-common/scripts/storage/secondary/cloud-install-sys-tmplt -m /mnt/secondary -u http://download.cloud.com/templates/4.3/systemvm64template-2014-01-14-master-xen.vhd.bz2 -h xenserver -F
     sync
     umount /mnt/primary
     umount /mnt/secondary
@@ -177,27 +176,7 @@ RQUOTAD_PORT=875
 STATD_PORT=662
 STATD_OUTGOING_PORT=2020" >> /etc/sysconfig/nfs
 
-    INPUT_SECTION_LINE=`cat -n /etc/sysconfig/iptables | egrep -- '-A INPUT' | head -1 | awk '{print $1}'`
-
-    head -`expr $INPUT_SECTION_LINE - 1` /etc/sysconfig/iptables > /tmp/before
-    tail -$INPUT_SECTION_LINE /etc/sysconfig/iptables > /tmp/after
-    cat /tmp/before > /etc/sysconfig/iptables
-    echo "-A INPUT -s $NETWORK -m state --state NEW -p udp --dport 111   -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p tcp --dport 111   -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p tcp --dport 2049  -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p tcp --dport 32803 -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p udp --dport 32769 -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p tcp --dport 892   -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p udp --dport 892   -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p tcp --dport 875   -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p udp --dport 875   -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p tcp --dport 662   -j ACCEPT
--A INPUT -s $NETWORK -m state --state NEW -p udp --dport 662   -j ACCEPT" >> /etc/sysconfig/iptables
-    cat /tmp/after >> /etc/sysconfig/iptables
-    rm -rf /tmp/before /tmp/after
-
-    service iptables restart
-    service iptables save
+    chkconfig iptables off
 
 }
 
