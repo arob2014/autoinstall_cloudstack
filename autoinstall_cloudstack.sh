@@ -33,7 +33,6 @@ function get_nfs_network() {
 }
 
 function install_common() {
-    yum update -y
     sed -i -e 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
     setenforce permissive
     echo "[cloudstack]
