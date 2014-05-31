@@ -66,27 +66,6 @@ binlog-format = 'ROW'" >> /etc/my.cnf
     service mysqld start
     chkconfig mysqld on
 
-    expect -c "
-set timeout 10
-spawn mysql_secure_installation
-expect \"Enter current password for root (enter for none): \"
-send \"\n\"
-expect \"Set root password?\"
-send \"Y\n\"
-expect \"New password: \"
-send \"password\n\"
-expect \"Re-enter new password: \"
-send \"password\n\"
-expect \"Remove anonymous users?\"
-send \"Y\n\"
-expect \"Disallow root login remotely?\"
-send \"Y\n\"
-expect \"Remove test database and access to it?\"
-send \"Y\n\"
-expect \"Reload privilege tables now?\"
-send \"Y\n\"
-interact
-"
     cloudstack-setup-databases cloud:password@localhost --deploy-as=root:passwd
     cloudstack-setup-management
     chkconfig cloudstack-management on
@@ -106,7 +85,7 @@ function initialize_storage() {
     sleep 10
     rm -rf /mnt/primary/*
     rm -rf /mnt/secondary/*
-    /usr/share/cloudstack-common/scripts/storage/secondary/cloud-install-sys-tmplt -m /mnt/secondary -u http://download.cloud.com/templates/4.3/systemvm64template-2014-01-14-master-xen.vhd.bz2 -h xenserver -F
+    /usr/share/cloudstack-common/scripts/storage/secondary/cloud-install-sys-tmplt -m /mnt/secondary -u http://127.0.0.1/systemvm64template-2014-01-14-master-xen.vhd.bz2 -h xenserver -F
     sync
     umount /mnt/primary
     umount /mnt/secondary
