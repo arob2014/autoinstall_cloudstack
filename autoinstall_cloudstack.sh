@@ -66,7 +66,7 @@ binlog-format = 'ROW'" >> /etc/my.cnf
     service mysqld start
     chkconfig mysqld on
 
-    cloudstack-setup-databases cloud:password@localhost --deploy-as=root:passwd
+    cloudstack-setup-databases cloud:password@localhost --deploy-as=root
     cloudstack-setup-management
     chkconfig cloudstack-management on
     chown cloud:cloud /var/log/cloudstack/management/catalina.out
