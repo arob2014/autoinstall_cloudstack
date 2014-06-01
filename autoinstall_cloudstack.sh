@@ -45,23 +45,13 @@ gpgcheck=0" > /etc/yum.repos.d/CloudStack.repo
     service ntpd start
     chkconfig ntpd on
     wget http://download.cloud.com.s3.amazonaws.com/tools/vhd-util
-    mkdir -p /usr/share/cloudstack-common/common/scripts/vm/hypervisor/xenserver
-    mv vhd-util /usr/share/cloudstack-common/common/scripts/vm/hypervisor/xenserver
+    chmod 777 vhd-util
+    mkdir -p /usr/share/cloudstack-common/scripts/vm/hypervisor/xenserver
+    mv vhd-util /usr/share/cloudstack-common/scripts/vm/hypervisor/xenserver
 }
 
 function install_management() {
-    yum install cloudstack-management mysql-server expect -y
-
-    head -7 /etc/my.cnf > /tmp/before
-    tail -n +7 /etc/my.cnf > /tmp/after
-    cat /tmp/before > /etc/my.cnf
-    echo "innodb_rollback_on_timeout=1
-innodb_lock_wait_timeout=600
-max_connections=350
-log-bin=mysql-bin
-binlog-format = 'ROW'" >> /etc/my.cnf
-    cat /tmp/after >> /etc/my.cnf
-    rm -rf /tmp/before /tmp/after
+    yum install cloudstack-management mysql-server
 
     service mysqld start
     chkconfig mysqld on
@@ -69,7 +59,17 @@ binlog-format = 'ROW'" >> /etc/my.cnf
     cloudstack-setup-databases cloud:password@localhost --deploy-as=root
     cloudstack-setup-management
     chkconfig cloudstack-management on
+    chkconfig ntpd on
+    chkconfig iptables off
+    wget http://download.cloud.com.s3.amazonaws.com/tools/vhd-util
+    chmod 777 vhd-util
+    mv vhd-util /usr/share/cloudstack-common/scripts/vm/hypervisor/xenserver
     chown cloud:cloud /var/log/cloudstack/management/catalina.out
+    mkdir -p /mnt/secondary
+    mount -t nfs 172.25.103.58:/export/secondary /mnt/secondary
+    sleep 10
+    /usr/share/cloudstack-common/scripts/storage/secondary/cloud-install-sys-tmplt -m /mnt/secondary -f /root/systemvm64template-2014-01-14-master-xen.vhd.bz2 -h xenserver -F
+    reboot
 }
 
 function initialize_storage() {
@@ -84,12 +84,9 @@ function initialize_storage() {
     mount -t nfs ${NFS_SERVER_IP}:${NFS_SERVER_SECONDARY} /mnt/secondary
     sleep 10
     rm -rf /mnt/primary/*
-    rm -rf /mnt/secondary/*
     /usr/share/cloudstack-common/scripts/storage/secondary/cloud-install-sys-tmplt -m /mnt/secondary -u http://127.0.0.1/systemvm64template-2014-01-14-master-xen.vhd.bz2 -h xenserver -F
     sync
-    umount /mnt/primary
     umount /mnt/secondary
-    rmdir /mnt/primary
     rmdir /mnt/secondary
 }
 
